@@ -10,6 +10,7 @@ import Writeups from "./pages/Writeups";
 import Notes from "./pages/Notes";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
+import SqlInjectionLoginBypass from "./pages/projects/SqlInjectionLoginBypass";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/about" element={<About />} />
           <Route path="/portfolio" element={<Portfolio />} />
+          <Route path="/portfolio/sql-injection-login-bypass" element={<SqlInjectionLoginBypass />} />
           <Route path="/writeups" element={<Writeups />} />
           <Route path="/notes" element={<Notes />} />
           <Route path="/contact" element={<Contact />} />

@@ -4,11 +4,11 @@ import ProjectCard from "@/components/ProjectCard";
 const Portfolio = () => {
   const projects = [
     {
-      title: "Web Application Pentest Report",
+      title: "Login Bypass using SQL Injection",
       description:
-        "Comprehensive security assessment of a modern web application with focus on authentication, authorization, and business logic vulnerabilities.",
-      tags: ["XSS", "IDOR", "Auth Bypass", "CSRF"],
-      link: "/portfolio/web-pentest",
+        "Authentication bypass through unsanitized user input in login form, demonstrating complete access control failure and privilege escalation.",
+      tags: ["SQL Injection", "Auth Bypass", "Critical"],
+      link: "/portfolio/sql-injection-login-bypass",
     },
     {
       title: "API Pentest Report",
