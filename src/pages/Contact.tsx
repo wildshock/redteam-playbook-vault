@@ -32,12 +32,12 @@ const Contact = () => {
               <div>
                 <h3 className="mb-1 font-semibold">GitHub</h3>
                 <a
-                  href="https://github.com/aaravsec"
+                  href="https://github.com/wildshock"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-sm text-muted-foreground hover:text-accent"
                 >
-                  github.com/aaravsec
+                  github.com/wildshock
                 </a>
               </div>
             </div>
@@ -47,12 +47,12 @@ const Contact = () => {
               <div>
                 <h3 className="mb-1 font-semibold">LinkedIn</h3>
                 <a
-                  href="https://linkedin.com/in/aaravsec"
+                  href="https://www.linkedin.com/in/aarav-vishnoi-51b921290"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-sm text-muted-foreground hover:text-accent"
                 >
-                  linkedin.com/in/aaravsec
+                  linkedin.com/in/aarav-vishnoi-51b921290
                 </a>
               </div>
             </div>
