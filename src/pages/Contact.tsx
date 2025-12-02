@@ -37,7 +37,7 @@ const Contact = () => {
                   rel="noopener noreferrer"
                   className="text-sm text-muted-foreground hover:text-accent"
                 >
-                  github.com/wildshock
+                  github.com/aaravvishnoi
                 </a>
               </div>
             </div>
