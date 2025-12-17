@@ -1,22 +1,71 @@
-import { useRef } from 'react';
-import { Canvas, useFrame, useLoader } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
+import { useRef, useMemo } from 'react';
+import { Canvas, useFrame, useLoader, extend } from '@react-three/fiber';
+import { OrbitControls, shaderMaterial } from '@react-three/drei';
 import * as THREE from 'three';
 import { TextureLoader } from 'three';
 
+// Custom grayscale material
+const GrayscaleEarthMaterial = shaderMaterial(
+  {
+    map: null,
+    bumpMap: null,
+    bumpScale: 0.05,
+    lightPosition: new THREE.Vector3(5, 3, 3),
+  },
+  // Vertex shader
+  `
+    varying vec2 vUv;
+    varying vec3 vNormal;
+    varying vec3 vPosition;
+    
+    void main() {
+      vUv = uv;
+      vNormal = normalize(normalMatrix * normal);
+      vPosition = (modelViewMatrix * vec4(position, 1.0)).xyz;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  // Fragment shader
+  `
+    uniform sampler2D map;
+    uniform vec3 lightPosition;
+    
+    varying vec2 vUv;
+    varying vec3 vNormal;
+    varying vec3 vPosition;
+    
+    void main() {
+      vec4 texColor = texture2D(map, vUv);
+      
+      // Convert to grayscale
+      float gray = dot(texColor.rgb, vec3(0.299, 0.587, 0.114));
+      
+      // Increase contrast - make continents white, oceans dark
+      gray = smoothstep(0.15, 0.55, gray);
+      
+      // Calculate lighting
+      vec3 lightDir = normalize(lightPosition - vPosition);
+      float diff = max(dot(vNormal, lightDir), 0.0);
+      float ambient = 0.3;
+      float lighting = ambient + diff * 0.7;
+      
+      // Apply lighting to grayscale
+      vec3 finalColor = vec3(gray) * lighting;
+      
+      gl_FragColor = vec4(finalColor, 1.0);
+    }
+  `
+);
+
+extend({ GrayscaleEarthMaterial });
+
 const Earth = () => {
   const meshRef = useRef<THREE.Mesh>(null);
+  const materialRef = useRef<any>(null);
   
-  // Load clean earth texture
   const earthTexture = useLoader(
     TextureLoader,
     'https://unpkg.com/three-globe@2.31.0/example/img/earth-blue-marble.jpg'
-  );
-  
-  // Bump map for terrain elevation
-  const bumpMap = useLoader(
-    TextureLoader,
-    'https://unpkg.com/three-globe@2.31.0/example/img/earth-topology.png'
   );
 
   useFrame((state, delta) => {
@@ -28,25 +77,11 @@ const Earth = () => {
   return (
     <mesh ref={meshRef}>
       <sphereGeometry args={[2, 64, 64]} />
-      <meshStandardMaterial
+      {/* @ts-ignore */}
+      <grayscaleEarthMaterial
+        ref={materialRef}
         map={earthTexture}
-        bumpMap={bumpMap}
-        bumpScale={0.05}
-        roughness={0.8}
-        metalness={0.1}
-        // Desaturate to grayscale
-        onBeforeCompile={(shader) => {
-          shader.fragmentShader = shader.fragmentShader.replace(
-            '#include <output_fragment>',
-            `
-            #include <output_fragment>
-            float gray = dot(gl_FragColor.rgb, vec3(0.299, 0.587, 0.114));
-            // Increase contrast: white continents, dark oceans
-            gray = smoothstep(0.2, 0.6, gray);
-            gl_FragColor.rgb = vec3(gray);
-            `
-          );
-        }}
+        lightPosition={[5, 3, 3]}
       />
     </mesh>
   );
@@ -59,23 +94,6 @@ const EarthGlobe = () => {
         camera={{ position: [0, 0, 5], fov: 45 }}
         style={{ background: 'transparent' }}
       >
-        {/* Ambient for base illumination */}
-        <ambientLight intensity={0.3} />
-        
-        {/* Main key light from top-right */}
-        <directionalLight 
-          position={[5, 3, 3]} 
-          intensity={1.5} 
-          color="#ffffff" 
-        />
-        
-        {/* Fill light from left */}
-        <directionalLight 
-          position={[-3, 0, 2]} 
-          intensity={0.3} 
-          color="#ffffff" 
-        />
-        
         <Earth />
         <OrbitControls
           enableZoom={false}
