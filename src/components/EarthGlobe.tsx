@@ -5,62 +5,50 @@ import * as THREE from 'three';
 import { TextureLoader } from 'three';
 
 const Earth = () => {
-  const meshRef = useRef<THREE.Group>(null);
+  const meshRef = useRef<THREE.Mesh>(null);
   
-  // Load earth textures
+  // Load clean earth texture
   const earthTexture = useLoader(
     TextureLoader,
-    'https://unpkg.com/three-globe@2.31.0/example/img/earth-dark.jpg'
+    'https://unpkg.com/three-globe@2.31.0/example/img/earth-blue-marble.jpg'
   );
   
-  const earthOutline = useLoader(
+  // Bump map for terrain elevation
+  const bumpMap = useLoader(
     TextureLoader,
     'https://unpkg.com/three-globe@2.31.0/example/img/earth-topology.png'
   );
 
   useFrame((state, delta) => {
     if (meshRef.current) {
-      meshRef.current.rotation.y += delta * 0.1;
+      meshRef.current.rotation.y += delta * 0.08;
     }
   });
 
   return (
-    <group ref={meshRef}>
-      {/* Base Earth */}
-      <mesh>
-        <sphereGeometry args={[2, 64, 64]} />
-        <meshStandardMaterial
-          map={earthTexture}
-          color="#888888"
-          emissive="#000000"
-          roughness={1}
-          metalness={0}
-        />
-      </mesh>
-      
-      {/* Continent outlines overlay */}
-      <mesh>
-        <sphereGeometry args={[2.01, 64, 64]} />
-        <meshBasicMaterial
-          map={earthOutline}
-          transparent
-          opacity={0.6}
-          blending={THREE.AdditiveBlending}
-          color="#ffffff"
-        />
-      </mesh>
-      
-      {/* Edge glow outline */}
-      <mesh>
-        <sphereGeometry args={[2.03, 64, 64]} />
-        <meshBasicMaterial
-          color="#ffffff"
-          transparent
-          opacity={0.05}
-          side={THREE.BackSide}
-        />
-      </mesh>
-    </group>
+    <mesh ref={meshRef}>
+      <sphereGeometry args={[2, 64, 64]} />
+      <meshStandardMaterial
+        map={earthTexture}
+        bumpMap={bumpMap}
+        bumpScale={0.05}
+        roughness={0.8}
+        metalness={0.1}
+        // Desaturate to grayscale
+        onBeforeCompile={(shader) => {
+          shader.fragmentShader = shader.fragmentShader.replace(
+            '#include <output_fragment>',
+            `
+            #include <output_fragment>
+            float gray = dot(gl_FragColor.rgb, vec3(0.299, 0.587, 0.114));
+            // Increase contrast: white continents, dark oceans
+            gray = smoothstep(0.2, 0.6, gray);
+            gl_FragColor.rgb = vec3(gray);
+            `
+          );
+        }}
+      />
+    </mesh>
   );
 };
 
@@ -71,8 +59,23 @@ const EarthGlobe = () => {
         camera={{ position: [0, 0, 5], fov: 45 }}
         style={{ background: 'transparent' }}
       >
-        <ambientLight intensity={0.4} />
-        <directionalLight position={[5, 3, 5]} intensity={0.8} color="#ffffff" />
+        {/* Ambient for base illumination */}
+        <ambientLight intensity={0.3} />
+        
+        {/* Main key light from top-right */}
+        <directionalLight 
+          position={[5, 3, 3]} 
+          intensity={1.5} 
+          color="#ffffff" 
+        />
+        
+        {/* Fill light from left */}
+        <directionalLight 
+          position={[-3, 0, 2]} 
+          intensity={0.3} 
+          color="#ffffff" 
+        />
+        
         <Earth />
         <OrbitControls
           enableZoom={false}
